@@ -1,0 +1,95 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Primitives ---
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'parvezhusain964@gmail.com'
+      );
+    }
+
+    // --- Validation Helpers ---
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'price', 'category', 'img', 'createdAt', 'updatedAt']) &&
+             data.keys().size() == 6 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.price is string && data.price.size() > 0 && data.price.size() <= 50 &&
+             data.category is string && data.category.size() > 0 && data.category.size() <= 50 &&
+             data.img is string && data.img.size() > 0 && data.img.size() <= 1048576 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidProductUpdate(data) {
+      // For updates we only validate what is present. (Strict keys check is done using hasOnly in the update block)
+      return ( !('name' in data) || (data.name is string && data.name.size() > 0 && data.name.size() <= 100) ) &&
+             ( !('price' in data) || (data.price is string && data.price.size() > 0 && data.price.size() <= 50) ) &&
+             ( !('category' in data) || (data.category is string && data.category.size() > 0 && data.category.size() <= 50) ) &&
+             ( !('img' in data) || (data.img is string && data.img.size() > 0 && data.img.size() <= 1048576) ) &&
+             ( !('updatedAt' in data) || (data.updatedAt is timestamp) );
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['customerName', 'productName', 'price', 'status', 'createdAt', 'updatedAt']) &&
+             data.keys().size() <= 8 && // customerPhone or address optional
+             data.customerName is string && data.customerName.size() > 0 && data.customerName.size() <= 100 &&
+             data.productName is string && data.productName.size() > 0 && data.productName.size() <= 100 &&
+             data.price is string && data.price.size() > 0 && data.price.size() <= 50 &&
+             (!('customerPhone' in data) || (data.customerPhone is string && data.customerPhone.size() <= 20)) &&
+             (!('address' in data) || (data.address is string && data.address.size() <= 500)) &&
+             data.status is string && data.status.size() > 0 && data.status.size() <= 50 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidOrderUpdate(data) {
+      return ( !('status' in data) || (data.status is string && data.status.size() > 0 && data.status.size() <= 50) ) &&
+             ( !('updatedAt' in data) || (data.updatedAt is timestamp) );
+    }
+
+    // --- Collections ---
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      // Only an existing admin can create a new admin? No, let's bootstrap securely or manually via console.
+      // We will allow manual creation through Firebase Console or by an existing admin.
+      allow write: if isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if true; // Public can see products
+      allow create: if isAdmin() && isValidId(productId) && isValidProduct(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(productId) && isValidProductUpdate(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'price', 'category', 'img', 'updatedAt']) &&
+                    incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(productId);
+    }
+
+    match /orders/{orderId} {
+      allow list: if isAdmin(); // Only admins can list orders
+      allow get: if true; // Anyone can get order status by knowing the secret document ID!
+      allow create: if isValidId(orderId) && isValidOrder(incoming()) && incoming().createdAt == request.time && incoming().updatedAt == request.time; // Anyone can submit an order!
+      allow update: if isAdmin() && isValidId(orderId) && isValidOrderUpdate(incoming()) &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) &&
+                    incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(orderId);
+    }
+
+  }
+}

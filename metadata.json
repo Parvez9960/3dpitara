@@ -1,0 +1,6 @@
+{
+  "name": "3DPitara - Custom 3D Printed Keychains",
+  "description": "3DPitara is a Pune-based custom 3D printing store specializing in unique, premium-quality personalized keychains and accessories.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

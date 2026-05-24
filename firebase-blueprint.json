@@ -1,0 +1,57 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Store products for 3DPitara.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "string" },
+        "category": { "type": "string" },
+        "img": { "type": "string" },
+        "createdAt": { "type": "object" },
+        "updatedAt": { "type": "object" }
+      },
+      "required": ["name", "price", "category", "img", "createdAt", "updatedAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer orders.",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string" },
+        "productName": { "type": "string" },
+        "price": { "type": "string" },
+        "address": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "object" },
+        "updatedAt": { "type": "object" }
+      },
+      "required": ["customerName", "productName", "price", "status", "createdAt", "updatedAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Admin users allowed to manage.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "createdAt": { "type": "object" }
+      },
+      "required": ["email", "createdAt"]
+    }
+  },
+  "firestore": {
+    "products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Collection of products"
+    },
+    "orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Collection of orders"
+    },
+    "admins/{adminId}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Admin roles"
+    }
+  }
+}
