@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // ADDED THIS LINE
+import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { motion, AnimatePresence } from 'motion/react';
@@ -722,12 +724,12 @@ function Footer({ onOpenPayment }: { onOpenPayment: () => void }) {
           </div>
         </div>
         
-        <div className="text-center text-gray-500 text-sm flex flex-col md:flex-row justify-between items-center border-t border-white/10 pt-8 mt-8">
+        <div className="text-center text-gray-500 text-sm flex flex-col md:flex-row justify-center gap-4 md:gap-8 items-center border-t border-white/10 pt-8 mt-8 pb-10">
           <p>© {new Date().getFullYear()} 3DPitara. All rights reserved.</p>
           <div className="flex gap-4 mt-2 md:mt-0 items-center">
             <p>Owner: Juned Shaikh</p>
             <span className="text-white/20">|</span>
-            <a href="/admin" className="hover:text-brand-accent transition-colors">Admin Login</a>
+            <Link to="/admin" className="hover:text-brand-accent transition-colors">Admin Login</Link>
           </div>
         </div>
       </div>
@@ -744,7 +746,7 @@ function FloatingWhatsApp() {
       className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-lg shadow-green-500/30 hover:scale-110 transition-transform flex items-center justify-center group"
     >
       <WhatsAppIcon className="w-8 h-8" />
-      <span className="absolute right-full mr-4 bg-white text-gray-900 px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+      <span className="absolute right-full mr-4 bg-white text-gray-900 px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity shadow-lg pointer-events-none">
         Order on WhatsApp
       </span>
     </a>
